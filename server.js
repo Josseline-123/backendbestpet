@@ -1,41 +1,30 @@
-require('dotenv').config(); // 👈 Importante para que .env funcione
+require('dotenv').config();
 
 const express = require('express');
-const app = express();
 const cors = require('cors');
 const path = require('path');
+const { sequelize } = require('./models');
+
+const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-const ordenRoutes = require('./routes/ordenRoutes');
-const productoRoutes = require('./routes/productoRoutes');
-const authRoutes = require('./routes/authRoutes');
-const carritoRoutes = require('./routes/carritoRoutes');
+app.use('/api/ordenes', require('./routes/ordenRoutes'));
+app.use('/api/productos', require('./routes/productoRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/carrito', require('./routes/carritoRoutes'));
 
-
-
-app.use('/api/ordenes', ordenRoutes);
-app.use('/api/productos', productoRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/carrito', carritoRoutes);
-
-
-
-const { sequelize } = require('./models');
 const PORT = process.env.PORT || 5000;
 
-sequelize.sync({ alter: true })
+sequelize.authenticate()
   .then(() => {
-    console.log('Base de datos sincronizada');
+    console.log('Conexión a la base de datos exitosa');
     app.listen(PORT, () => {
-      console.log(`Servidor corriendo en el puerto ${PORT}`);
+      console.log(`Servidor corriendo en puerto ${PORT}`);
     });
   })
-  .catch((err) => {
-    console.error('Error al sincronizar la base de datos:', err);
+  .catch((error) => {
+    console.error('Error al conectar con la base de datos:', error);
   });
-
-
-

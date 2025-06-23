@@ -1,37 +1,48 @@
-require('dotenv').config();
+require('dotenv').config(); // 👈 Importante para que .env funcione
 
 const express = require('express');
+const app = express();
 const cors = require('cors');
 const path = require('path');
-const { sequelize } = require('./models');
 
-const app = express();
+const allowedOrigins = ['https://pffronend.vercel.app', 'http://localhost:5173'];
 
-app.use(cors());
+app.use(cors({
+  origin: function(origin, callback) {
+    // Permite solicitudes sin origen (como Postman o curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = `La política CORS no permite acceso desde el origen: ${origin}`;
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true, // si usas cookies o headers con credenciales
+}));
+
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Rutas
-app.use('/api/ordenes', require('./routes/ordenRoutes'));
-app.use('/api/productos', require('./routes/productoRoutes'));
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/carrito', require('./routes/carritoRoutes'));
+const ordenRoutes = require('./routes/ordenRoutes');
+const productoRoutes = require('./routes/productoRoutes');
+const authRoutes = require('./routes/authRoutes');
+const carritoRoutes = require('./routes/carritoRoutes');
 
+app.use('/api/ordenes', ordenRoutes);
+app.use('/api/productos', productoRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/carrito', carritoRoutes);
+
+const { sequelize } = require('./models');
 const PORT = process.env.PORT || 5000;
 
-// Conexión y sincronización con la base de datos
-sequelize.authenticate()
+sequelize.sync({ alter: true })
   .then(() => {
-    console.log('🟢 Conexión a la base de datos exitosa');
-    return sequelize.sync({ alter: true }); // sincroniza tablas
-  })
-  .then(() => {
-    console.log('🗂️ Base de datos sincronizada');
+    console.log('Base de datos sincronizada');
     app.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+      console.log(`Servidor corriendo en el puerto ${PORT}`);
     });
   })
-  .catch((error) => {
-    console.error('❌ Error al conectar/sincronizar la base de datos:', error);
+  .catch((err) => {
+    console.error('Error al sincronizar la base de datos:', err);
   });
-

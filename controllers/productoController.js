@@ -31,10 +31,16 @@ const obtenerProductos = async (req, res) => {
     const productos = await Producto.findAll();
     res.json(productos);
   } catch (error) {
-    console.error('Error al obtener productos:', error);
-    res.status(500).json({ error: 'Error al obtener productos' });
+    console.error('❌ Error al obtener productos:', error); // log completo
+    res.status(500).json({
+      error: 'Error al obtener productos',
+      mensaje: error.message,
+      stack: error.stack
+    });
   }
 };
+
+
 
 // Obtener los productos del usuario logueado
 const obtenerMisProductos = async (req, res) => {

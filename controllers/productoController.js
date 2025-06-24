@@ -31,7 +31,7 @@ const obtenerProductos = async (req, res) => {
     const productos = await Producto.findAll();
     res.json(productos);
   } catch (error) {
-    console.error('❌ Error al obtener productos:', error);
+    console.error('Error al obtener productos:', error);
     res.status(500).json({ error: 'Error al obtener productos' });
   }
 };
@@ -121,3 +121,4 @@ module.exports = {
   eliminarProducto,
   filtrarProductos,
 };
+

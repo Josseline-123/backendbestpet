@@ -7,6 +7,15 @@ module.exports = (sequelize, DataTypes) => {
     precio: {
       type: DataTypes.FLOAT,
       allowNull: false,
+      validate: {
+        isFloat: {
+          msg: 'El precio debe ser un número válido',
+        },
+        min: {
+          args: [0.01],
+          msg: 'El precio debe ser mayor a 0',
+        }
+      },
     },
     descripcion: {
       type: DataTypes.TEXT,
@@ -14,10 +23,9 @@ module.exports = (sequelize, DataTypes) => {
     imagen: {
       type: DataTypes.STRING,
     },
-    
     categoria: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
     },
     usuarioId: {
       type: DataTypes.INTEGER,
@@ -25,8 +33,8 @@ module.exports = (sequelize, DataTypes) => {
       references: {
         model: 'Usuarios',
         key: 'id',
-      }
-    }
+      },
+    },
   });
 
   Producto.associate = function(models) {
@@ -35,6 +43,7 @@ module.exports = (sequelize, DataTypes) => {
 
   return Producto;
 };
+
 
 
 

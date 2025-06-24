@@ -10,11 +10,14 @@ const crearProducto = async (req, res) => {
     const { nombre, descripcion, precio, categoria } = req.body;
     let imagenUrl = null;
 
+    // Si viene una imagen, súbela a Cloudinary
     if (req.file) {
       const result = await cloudinary.uploader.upload(req.file.path, {
         folder: 'productos-bestpet',
       });
       imagenUrl = result.secure_url;
+
+      // Elimina el archivo temporal en el servidor
       fs.unlinkSync(req.file.path);
     }
 
@@ -34,8 +37,7 @@ const crearProducto = async (req, res) => {
   }
 };
 
-
-// Obtener todos los productos (público)
+// Obtener todos los productos
 const obtenerProductos = async (_req, res) => {
   try {
     const productos = await Producto.findAll();
@@ -75,7 +77,7 @@ const editarProducto = async (req, res) => {
       const result = await cloudinary.uploader.upload(req.file.path, {
         folder: 'productos-bestpet',
       });
-      fs.unlinkSync(req.file.path);
+      fs.unlinkSync(req.file.path); // Elimina el archivo temporal
       req.body.imagen = result.secure_url;
     }
 
@@ -83,7 +85,7 @@ const editarProducto = async (req, res) => {
     res.json(producto);
   } catch (error) {
     console.error('❌ Error al editar producto:', error);
-    res.status(500).json({ error: 'Error al editar producto' });
+    res.status(500).json({ error: error.message || 'Error al editar producto' });
   }
 };
 

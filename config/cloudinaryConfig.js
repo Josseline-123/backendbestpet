@@ -1,4 +1,5 @@
-const cloudinary = require('cloudinary').v2;
+// config/cloudinaryConfig.js
+const cloudinary = require("cloudinary").v2;
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -7,3 +8,5 @@ cloudinary.config({
 });
 
 module.exports = cloudinary;
+
+

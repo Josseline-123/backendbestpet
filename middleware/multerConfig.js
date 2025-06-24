@@ -1,10 +1,9 @@
-// middlewares/multerConfig.js
 const multer = require("multer");
-const path = require("path");
 
+// Guardar archivo temporal en disco para luego subirlo a Cloudinary
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/");
+    cb(null, "uploads/"); // carpeta temporal
   },
   filename: function (req, file, cb) {
     const uniqueName = Date.now() + "-" + file.originalname;
@@ -13,8 +12,8 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const ext = path.extname(file.originalname).toLowerCase();
-  if ([".jpg", ".jpeg", ".png", ".gif"].includes(ext)) {
+  const ext = file.originalname.toLowerCase();
+  if (/\.(jpg|jpeg|png|gif)$/.test(ext)) {
     cb(null, true);
   } else {
     cb(new Error("Solo se permiten imágenes"));
@@ -24,4 +23,3 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ storage, fileFilter });
 
 module.exports = upload;
-

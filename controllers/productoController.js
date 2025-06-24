@@ -12,10 +12,10 @@ const crearProducto = async (req, res) => {
 
     if (req.file) {
       const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'productos-bestpet', // opcional: organiza en una carpeta en Cloudinary
+        folder: 'productos-bestpet',
       });
       imagenUrl = result.secure_url;
-      fs.unlinkSync(req.file.path); // limpia el archivo local temporal
+      fs.unlinkSync(req.file.path);
     }
 
     const nuevoProducto = await Producto.create({
@@ -30,9 +30,10 @@ const crearProducto = async (req, res) => {
     res.status(201).json(nuevoProducto);
   } catch (error) {
     console.error('❌ Error al crear producto:', error);
-    res.status(500).json({ error: 'Error al crear el producto' });
+    res.status(500).json({ error: error.message || 'Error al crear el producto' });
   }
 };
+
 
 // Obtener todos los productos (público)
 const obtenerProductos = async (_req, res) => {

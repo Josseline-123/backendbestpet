@@ -15,7 +15,7 @@ const crearProducto = async (req, res) => {
       precio,
       categoria,
       imagen,
-      usuarioId: req.user.id, // ✅ Corregido
+      usuarioId: req.user.id, // Viene del middleware de autenticación
     });
 
     res.status(201).json(nuevoProducto);
@@ -25,24 +25,18 @@ const crearProducto = async (req, res) => {
   }
 };
 
-// Obtener todos los productos
+// Obtener todos los productos (público, sin auth)
 const obtenerProductos = async (req, res) => {
   try {
     const productos = await Producto.findAll();
     res.json(productos);
   } catch (error) {
-    console.error('❌ Error al obtener productos:', error); // log completo
-    res.status(500).json({
-      error: 'Error al obtener productos',
-      mensaje: error.message,
-      stack: error.stack
-    });
+    console.error('❌ Error al obtener productos:', error);
+    res.status(500).json({ error: 'Error al obtener productos' });
   }
 };
 
-
-
-// Obtener los productos del usuario logueado
+// Obtener productos del usuario autenticado (con auth)
 const obtenerMisProductos = async (req, res) => {
   try {
     const usuarioId = req.user.id;
@@ -54,7 +48,7 @@ const obtenerMisProductos = async (req, res) => {
   }
 };
 
-// Editar producto
+// Editar producto (solo propietario)
 const editarProducto = async (req, res) => {
   try {
     const id = req.params.id;
@@ -76,7 +70,7 @@ const editarProducto = async (req, res) => {
   }
 };
 
-// Eliminar producto
+// Eliminar producto (solo propietario)
 const eliminarProducto = async (req, res) => {
   try {
     const id = req.params.id;
@@ -98,7 +92,7 @@ const eliminarProducto = async (req, res) => {
   }
 };
 
-// Filtrar productos
+// Filtrar productos por categoría y rango de precio (público)
 const filtrarProductos = async (req, res) => {
   try {
     const { categoria, precioMin, precioMax } = req.query;
@@ -127,4 +121,3 @@ module.exports = {
   eliminarProducto,
   filtrarProductos,
 };
-

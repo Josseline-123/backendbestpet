@@ -13,17 +13,13 @@ const {
   filtrarProductos
 } = require('../controllers/productoController');
 
-// Filtrar productos (público)
+// Rutas públicas (sin auth)
 router.get('/filtro', filtrarProductos);
-
-
-// Listar todos los productos (público)
 router.get('/', obtenerProductos);
 
-// Listar productos del usuario logueado (protegido)
+// Rutas protegidas (requieren token)
 router.get('/mios', authMiddleware, obtenerMisProductos);
 
-// Crear producto con imagen (protegido + multer)
 router.post(
   '/',
   authMiddleware,
@@ -31,7 +27,6 @@ router.post(
   crearProducto
 );
 
-// Editar producto (incluye posible nueva imagen)
 router.put(
   '/:id',
   authMiddleware,
@@ -39,8 +34,8 @@ router.put(
   editarProducto
 );
 
-// Eliminar producto
 router.delete('/:id', authMiddleware, eliminarProducto);
 
 module.exports = router;
+
 

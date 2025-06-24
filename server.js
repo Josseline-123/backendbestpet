@@ -5,24 +5,31 @@ const app = express();
 const cors = require('cors');
 const path = require('path');
 
-const allowedOrigins = ['https://pffronend.vercel.app', 'http://localhost:5173'];
+// ✅ Declarar allowedOrigins una sola vez
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://pffronend.vercel.app'
+];
 
+// ✅ Configuración CORS
 app.use(cors({
-  origin: function(origin, callback) {
-    // Permite solicitudes sin origen (como Postman o curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = `La política CORS no permite acceso desde el origen: ${origin}`;
-      return callback(new Error(msg), false);
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('No permitido por CORS'));
     }
-    return callback(null, true);
   },
-  credentials: true, // si usas cookies o headers con credenciales
+  credentials: true
 }));
 
 app.use(express.json());
+
+// ✅ Servir archivos de imágenes (si subes imágenes)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// ✅ Importar y usar rutas
 const ordenRoutes = require('./routes/ordenRoutes');
 const productoRoutes = require('./routes/productoRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -33,16 +40,17 @@ app.use('/api/productos', productoRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/carrito', carritoRoutes);
 
+// ✅ Conexión a la base de datos y servidor
 const { sequelize } = require('./models');
 const PORT = process.env.PORT || 5000;
 
 sequelize.sync({ alter: true })
   .then(() => {
-    console.log('Base de datos sincronizada');
+    console.log('✅ Base de datos sincronizada');
     app.listen(PORT, () => {
-      console.log(`Servidor corriendo en el puerto ${PORT}`);
+      console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
     });
   })
   .catch((err) => {
-    console.error('Error al sincronizar la base de datos:', err);
+    console.error('❌ Error al sincronizar la base de datos:', err);
   });

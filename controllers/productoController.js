@@ -1,13 +1,11 @@
+const { Producto } = require('../models');
 const { Op } = require('sequelize');
-const { Producto } = require("../models");
 
-// Crear un nuevo producto
+// Crear nuevo producto
 const crearProducto = async (req, res) => {
   try {
     const { nombre, descripcion, precio, categoria } = req.body;
     const imagen = req.file ? req.file.filename : null;
-
-    console.log("Imagen subida con nombre:", imagen);
 
     const nuevoProducto = await Producto.create({
       nombre,
@@ -15,17 +13,17 @@ const crearProducto = async (req, res) => {
       precio,
       categoria,
       imagen,
-      usuarioId: req.user.id, // Viene del middleware de autenticación
+      usuarioId: req.user.id, // middleware auth debe definir req.user
     });
 
     res.status(201).json(nuevoProducto);
   } catch (error) {
-    console.error("Error al crear producto:", error);
-    res.status(500).json({ error: "Error al crear el producto" });
+    console.error('Error al crear producto:', error);
+    res.status(500).json({ error: 'Error al crear el producto' });
   }
 };
 
-// Obtener todos los productos (público, sin auth)
+// Obtener todos los productos (público)
 const obtenerProductos = async (req, res) => {
   try {
     const productos = await Producto.findAll();
@@ -36,7 +34,7 @@ const obtenerProductos = async (req, res) => {
   }
 };
 
-// Obtener productos del usuario autenticado (con auth)
+// Obtener productos del usuario autenticado
 const obtenerMisProductos = async (req, res) => {
   try {
     const usuarioId = req.user.id;
@@ -121,4 +119,3 @@ module.exports = {
   eliminarProducto,
   filtrarProductos,
 };
-

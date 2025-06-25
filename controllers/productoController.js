@@ -1,29 +1,22 @@
-const { Producto } = require('../models');
-const { Op } = require('sequelize');
-const cloudinary = require('../config/cloudinaryConfig');
-const streamifier = require('streamifier');
-
-// Función auxiliar para subir imagen a Cloudinary desde buffer
-const subirImagenCloudinary = (buffer) => {
-  return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { folder: 'productos-bestpet' },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      }
-    );
-    streamifier.createReadStream(buffer).pipe(uploadStream);
-  });
-};
-
 // Crear nuevo producto
 const crearProducto = async (req, res) => {
   try {
     const { nombre, descripcion, precio, categoria } = req.body;
     let imagenUrl = null;
 
-    // Si viene una imagen, súbela a Cloudinary desde buffer
+    // ✅ Validar categoría permitida
+    const categoriasValidas = ['perros', 'gatos', 'otras-mascotas'];
+    if (!categoriasValidas.includes(categoria)) {
+      return res.status(400).json({ error: 'Categoría no válida' });
+    }
+
+    // ✅ Validar que el precio sea un número válido y positivo
+    const precioNumero = parseFloat(precio);
+    if (isNaN(precioNumero) || precioNumero <= 0) {
+      return res.status(400).json({ error: 'Precio inválido' });
+    }
+
+    // ✅ Subir imagen a Cloudinary si hay
     if (req.file) {
       const result = await subirImagenCloudinary(req.file.buffer);
       imagenUrl = result.secure_url;
@@ -32,7 +25,7 @@ const crearProducto = async (req, res) => {
     const nuevoProducto = await Producto.create({
       nombre,
       descripcion,
-      precio,
+      precio: precioNumero, // guardamos como número
       categoria,
       imagen: imagenUrl,
       usuarioId: req.user.id,
@@ -45,102 +38,3 @@ const crearProducto = async (req, res) => {
   }
 };
 
-// Obtener todos los productos
-const obtenerProductos = async (_req, res) => {
-  try {
-    const productos = await Producto.findAll();
-    res.json(productos);
-  } catch (error) {
-    console.error('❌ Error al obtener productos:', error);
-    res.status(500).json({ error: 'Error al obtener productos' });
-  }
-};
-
-// Obtener productos del usuario autenticado
-const obtenerMisProductos = async (req, res) => {
-  try {
-    const productos = await Producto.findAll({ where: { usuarioId: req.user.id } });
-    res.json(productos);
-  } catch (error) {
-    console.error('❌ Error al obtener tus productos:', error);
-    res.status(500).json({ error: 'Error al obtener tus productos' });
-  }
-};
-
-// Editar producto
-const editarProducto = async (req, res) => {
-  try {
-    const producto = await Producto.findByPk(req.params.id);
-
-    if (!producto) {
-      return res.status(404).json({ error: 'Producto no encontrado' });
-    }
-
-    if (producto.usuarioId !== req.user.id) {
-      return res.status(403).json({ error: 'No tienes permiso para editar este producto' });
-    }
-
-    // Subir nueva imagen si hay archivo, desde buffer
-    if (req.file) {
-      const result = await subirImagenCloudinary(req.file.buffer);
-      req.body.imagen = result.secure_url;
-    }
-
-    await producto.update(req.body);
-    res.json(producto);
-  } catch (error) {
-    console.error('❌ Error al editar producto:', error);
-    res.status(500).json({ error: error.message || 'Error al editar producto' });
-  }
-};
-
-// Eliminar producto
-const eliminarProducto = async (req, res) => {
-  try {
-    const producto = await Producto.findByPk(req.params.id);
-
-    if (!producto) {
-      return res.status(404).json({ error: 'Producto no encontrado' });
-    }
-
-    if (producto.usuarioId !== req.user.id) {
-      return res.status(403).json({ error: 'No tienes permiso para eliminar este producto' });
-    }
-
-    await producto.destroy();
-    res.json({ message: 'Producto eliminado' });
-  } catch (error) {
-    console.error('❌ Error al eliminar producto:', error);
-    res.status(500).json({ error: 'Error al eliminar producto' });
-  }
-};
-
-// Filtrar productos
-const filtrarProductos = async (req, res) => {
-  try {
-    const { categoria, precioMin, precioMax } = req.query;
-    const condiciones = {};
-
-    if (categoria) condiciones.categoria = categoria;
-    if (precioMin || precioMax) {
-      condiciones.precio = {};
-      if (precioMin) condiciones.precio[Op.gte] = parseFloat(precioMin);
-      if (precioMax) condiciones.precio[Op.lte] = parseFloat(precioMax);
-    }
-
-    const productos = await Producto.findAll({ where: condiciones });
-    res.json(productos);
-  } catch (error) {
-    console.error('❌ Error al filtrar productos:', error);
-    res.status(500).json({ error: 'Error al filtrar productos' });
-  }
-};
-
-module.exports = {
-  crearProducto,
-  obtenerProductos,
-  obtenerMisProductos,
-  editarProducto,
-  eliminarProducto,
-  filtrarProductos,
-};

@@ -1,12 +1,14 @@
-const { Carrito, Producto } = require('../models');
+const { Carrito, Producto, Usuario } = require('../models');
 
-// Agregar producto al carrito
+// ✅ Agregar producto al carrito
 const agregarAlCarrito = async (req, res) => {
   const { productoId, cantidad } = req.body;
   const usuarioId = req.user.id;
 
   try {
-    const existente = await Carrito.findOne({ where: { usuarioId, productoId } });
+    const existente = await Carrito.findOne({
+      where: { usuarioId, productoId }
+    });
 
     if (existente) {
       existente.cantidad += cantidad;
@@ -14,32 +16,54 @@ const agregarAlCarrito = async (req, res) => {
       return res.json(existente);
     }
 
-    const item = await Carrito.create({ usuarioId, productoId, cantidad });
-    res.status(201).json(item);
+    const nuevoItem = await Carrito.create({
+      usuarioId,
+      productoId,
+      cantidad
+    });
+
+    res.status(201).json(nuevoItem);
   } catch (error) {
-    console.error('Error al agregar al carrito:', error);
+    console.error('❌ Error al agregar al carrito:', error);
     res.status(500).json({ error: 'Error al agregar al carrito' });
   }
 };
 
-// Obtener carrito del usuario
+// ✅ Obtener carrito del usuario con datos del producto y del vendedor
 const obtenerCarrito = async (req, res) => {
+  console.log('🚀 Petición a obtenerCarrito recibida, userId:', req.user?.id);
+
   try {
     const usuarioId = req.user.id;
 
     const items = await Carrito.findAll({
       where: { usuarioId },
-      include: [{ model: Producto }],
+      include: [
+        {
+          model: Producto,
+          as: 'Producto',
+          include: [
+            {
+              model: Usuario,
+              as: 'vendedor', // Este alias debe coincidir con el definido en el modelo Producto
+              attributes: ['id', 'nombre', 'email']
+            }
+          ]
+        }
+      ]
     });
 
-    res.json(items); // Devuelve un array de ítems
+    // Ver los datos completos que llegan
+    console.log('📦 Carrito con productos y vendedores:', JSON.stringify(items, null, 2));
+
+    res.json(items);
   } catch (error) {
-    console.error('Error al obtener el carrito:', error);
+    console.error('❌ Error al obtener el carrito:', error);
     res.status(500).json({ error: 'Error al obtener el carrito' });
   }
 };
 
-// Eliminar un ítem específico del carrito
+// ✅ Eliminar ítem específico del carrito
 const eliminarDelCarrito = async (req, res) => {
   try {
     const { id } = req.params;
@@ -52,18 +76,18 @@ const eliminarDelCarrito = async (req, res) => {
     await item.destroy();
     res.json({ message: 'Item eliminado del carrito' });
   } catch (error) {
-    console.error('Error al eliminar del carrito:', error);
+    console.error('❌ Error al eliminar del carrito:', error);
     res.status(500).json({ error: 'Error al eliminar del carrito' });
   }
 };
 
-// Eliminar todo el carrito del usuario
+// ✅ Eliminar todo el carrito
 const eliminarCarrito = async (req, res) => {
   try {
     await Carrito.destroy({ where: { usuarioId: req.user.id } });
     res.status(200).json({ mensaje: 'Carrito eliminado correctamente' });
   } catch (error) {
-    console.error('Error al eliminar el carrito:', error);
+    console.error('❌ Error al eliminar el carrito:', error);
     res.status(500).json({ error: 'Error al eliminar el carrito' });
   }
 };
@@ -72,5 +96,5 @@ module.exports = {
   agregarAlCarrito,
   obtenerCarrito,
   eliminarDelCarrito,
-  eliminarCarrito, // <<--- Esto es lo que te faltaba
+  eliminarCarrito
 };

@@ -1,27 +1,33 @@
 module.exports = (sequelize, DataTypes) => {
-  const OrdenProducto = sequelize.define("OrdenProducto", {
+  const OrdenProducto = sequelize.define('OrdenProducto', {
+    cantidad: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+      validate: {
+        min: 1,
+      },
+    },
     ordenId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'Orden', // nombre de la tabla en la DB
-        key: 'id'
-      }
+        model: 'Ordenes',
+        key: 'id',
+      },
     },
     productoId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: 'Productos',
-        key: 'id'
-      }
+        key: 'id',
+      },
     },
-    cantidad: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-    }
+  }, {
+    tableName: 'OrdenProductos',
+    timestamps: false,
   });
 
   return OrdenProducto;
 };
-

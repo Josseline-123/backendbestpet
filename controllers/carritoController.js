@@ -6,6 +6,18 @@ const agregarAlCarrito = async (req, res) => {
   const usuarioId = req.user.id;
 
   try {
+    // Verificar si el producto existe y obtener al vendedor
+    const producto = await Producto.findByPk(productoId);
+
+    if (!producto) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
+    // Evitar que el usuario compre su propio producto
+    if (producto.usuarioId === usuarioId) {
+      return res.status(400).json({ error: 'No puedes comprar tu propio producto' });
+    }
+
     const existente = await Carrito.findOne({
       where: { usuarioId, productoId }
     });
@@ -45,7 +57,7 @@ const obtenerCarrito = async (req, res) => {
           include: [
             {
               model: Usuario,
-              as: 'vendedor', // Este alias debe coincidir con el definido en el modelo Producto
+              as: 'vendedor',
               attributes: ['id', 'nombre', 'email']
             }
           ]
@@ -53,7 +65,6 @@ const obtenerCarrito = async (req, res) => {
       ]
     });
 
-    // Ver los datos completos que llegan
     console.log('📦 Carrito con productos y vendedores:', JSON.stringify(items, null, 2));
 
     res.json(items);

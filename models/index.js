@@ -1,3 +1,5 @@
+require('dotenv').config(); // ✅ Cargar variables del archivo .env
+
 const { Sequelize, DataTypes } = require('sequelize');
 
 const ProductoModel = require('./producto');
@@ -8,6 +10,7 @@ const CarritoModel = require('./carrito');
 
 let sequelize;
 
+// ✅ Si estás en producción (Render, Railway), usar DATABASE_URL
 if (process.env.DATABASE_URL) {
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
@@ -20,12 +23,14 @@ if (process.env.DATABASE_URL) {
     },
   });
 } else {
+  // ✅ En desarrollo local o Docker
   sequelize = new Sequelize(
     process.env.DB_NAME,
     process.env.DB_USER,
-    process.env.DB_PASS,
+    process.env.DB_PASS, // ✅ Aquí está el cambio importante
     {
       host: process.env.DB_HOST,
+      port: process.env.DB_PORT || 5432,
       dialect: 'postgres',
       logging: false,
     }
@@ -43,7 +48,7 @@ db.Orden = OrdenModel(sequelize, DataTypes);
 db.OrdenProducto = OrdenProductoModel(sequelize, DataTypes);
 db.Carrito = CarritoModel(sequelize, DataTypes);
 
-// Ejecutar asociaciones
+// Asociaciones (si tus modelos las definen)
 Object.values(db).forEach(model => {
   if (model.associate) {
     model.associate(db);

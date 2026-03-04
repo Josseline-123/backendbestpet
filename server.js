@@ -1,18 +1,23 @@
-require('dotenv').config(); // 👈 Importante para que .env funcione
+require('dotenv').config();
 
 const express = require('express');
 const app = express();
 const cors = require('cors');
 const path = require('path');
 
-// ✅ Declarar allowedOrigins una sola vez
+// Ruta raíz para probar que el servidor funciona
+app.get('/', (req, res) => {
+  res.send('API BestPet funcionando correctamente 🚀');
+});
+
+// Declarar allowedOrigins una sola vez
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'https://pffronend.vercel.app'
 ];
 
-// ✅ Configuración CORS
+// Configuración CORS
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -26,10 +31,10 @@ app.use(cors({
 
 app.use(express.json());
 
-// ✅ Servir archivos de imágenes (si subes imágenes)
+// Servir archivos de imágenes
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ✅ Importar y usar rutas
+// Importar y usar rutas
 const ordenRoutes = require('./routes/ordenRoutes');
 const productoRoutes = require('./routes/productoRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -40,7 +45,7 @@ app.use('/api/productos', productoRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/carrito', carritoRoutes);
 
-// ✅ Conexión a la base de datos y servidor
+// Conexión a la base de datos y servidor
 const { sequelize } = require('./models');
 const PORT = process.env.PORT || 5000;
 
